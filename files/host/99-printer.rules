@@ -1,0 +1,5 @@
+# USB mode: the Ender 3 V2's CH340 (1a86:7523) as /dev/printer, so printer.cfg
+# is the same on every host. Installed by printer-link.sh enable at the cutover.
+# If another CH340 device is plugged into this host, match the board's own
+# path instead: replace the ATTRS with KERNELS=="<port from udevadm info>".
+SUBSYSTEM=="tty", ATTRS{idVendor}=="1a86", ATTRS{idProduct}=="7523", SYMLINK+="printer", GROUP="dialout", MODE="0660"

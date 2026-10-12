@@ -17,7 +17,7 @@
 set -euo pipefail
 
 export PATH="/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
-SRC="$(cd "$(dirname "$0")/../vm" && pwd)"
+SRC="$(cd "$(dirname "$0")/vm-seed" && pwd)"
 VM_NAME="${VM_NAME:-klipper}"
 VM_IP="${VM_IP:-192.168.64.250}"
 BRIDGE_IF="${BRIDGE_IF:-en0}"

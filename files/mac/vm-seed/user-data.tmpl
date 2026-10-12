@@ -14,7 +14,7 @@ packages: [linux-image-arm64, qemu-guest-agent, python3-serial, socat, rsync, gi
 runcmd:
   # the genericcloud kernel has no USB/serial drivers; keep only the generic one
   - [sh, -c, "DEBIAN_FRONTEND=noninteractive apt-get purge -y linux-image-cloud-arm64 'linux-image-*-cloud-arm64'"]
-  - [chmod, "711", /home/klipper]
+  - [chmod, "711", /home/klipper]   # nginx serves ~/mainsail (install-stack.sh also sets o+x)
 power_state:
   mode: reboot
   condition: true

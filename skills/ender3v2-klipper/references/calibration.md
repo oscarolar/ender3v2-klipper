@@ -2,7 +2,7 @@
 
 Every step moves or heats: the human is at the printer and the bed is clear
 (SKILL.md protocol). Send commands and read results with
-`files/tools/moonraker.sh` (`KLIPPER_HOST=<vm-lan-ip>`): `gcode`, `store`,
+`files/tools/moonraker.sh` (`KLIPPER_HOST=<klipper-host>`): `gcode`, `store`,
 `query`, `mesh`. Example numbers are from one stock bowden Ender 3 V2 with a
 CR Touch clone; yours will differ.
 
@@ -67,8 +67,8 @@ on top, plus `range`). Never read the graph. Example: range 0.205 mm over
 
 ## 7. Pressure advance (bowden)
 
-Slice Klipper's `docs/prints/square_tower.stl` (copy it from `~/klipper` in the
-VM): 0.2 mm layers, 1 wall, no infill or top, outer wall ≤ 80 mm/s, keeping
+Slice Klipper's `docs/prints/square_tower.stl` (copy it from `~/klipper` on the
+host): 0.2 mm layers, 1 wall, no infill or top, outer wall ≤ 80 mm/s, keeping
 flow ≤ ~10 mm³/s. A tower printed beyond the hotend's flow is invalid.
 Before printing:
 ```

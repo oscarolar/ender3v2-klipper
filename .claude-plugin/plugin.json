@@ -1,18 +1,20 @@
 {
-  "name": "ender3v2-klipper-on-mac",
-  "version": "0.1.4",
-  "description": "Migrate a Creality Ender 3 V2 (board 4.2.2, CR Touch) from Marlin to mainline Klipper with the Klipper host in a headless Debian 12 arm64 UTM VM on an always-on Apple Silicon Mac, the printer's USB serial forwarded over TCP, and a full calibration.",
+  "name": "ender3v2-klipper",
+  "version": "0.2.0",
+  "description": "Migrate a Creality Ender 3 V2 (board 4.2.2, CR Touch) from Marlin to mainline Klipper on a Raspberry Pi, a Linux PC or an Apple Silicon Mac (headless Debian VM with the USB serial bridged over TCP), with a full calibration, a go/no-go gate, print monitoring and power-loss resume.",
   "author": {
     "name": "Oscar Alcalá",
     "url": "https://github.com/oscarolar"
   },
-  "homepage": "https://github.com/oscarolar/ender3v2-klipper-on-mac",
-  "repository": "https://github.com/oscarolar/ender3v2-klipper-on-mac",
+  "homepage": "https://github.com/oscarolar/ender3v2-klipper",
+  "repository": "https://github.com/oscarolar/ender3v2-klipper",
   "license": "MIT",
   "keywords": [
     "klipper",
     "ender-3-v2",
     "3d-printing",
+    "raspberry-pi",
+    "linux",
     "utm",
     "macos",
     "cr-touch",

@@ -1,15 +1,15 @@
 {
-  "name": "ender3v2-klipper-on-mac",
+  "name": "ender3v2-klipper",
   "owner": {
     "name": "oscarolar",
     "url": "https://github.com/oscarolar"
   },
-  "description": "Move a Creality Ender 3 V2 from Marlin to Klipper with the Klipper host in a UTM VM on an Apple Silicon Mac (no Raspberry Pi), then calibrate it.",
+  "description": "Move a Creality Ender 3 V2 from Marlin to Klipper on a Raspberry Pi, a Linux PC or a Mac (UTM VM, no Pi), then calibrate it.",
   "plugins": [
     {
-      "name": "ender3v2-klipper-on-mac",
+      "name": "ender3v2-klipper",
       "source": "./",
-      "description": "Skill, scripts and configs to run Klipper for an Ender 3 V2 in a headless Debian VM on a Mac, with the printer's USB serial bridged over TCP, plus a full calibration method."
+      "description": "Skill, scripts and configs to run Klipper for an Ender 3 V2 on a Raspberry Pi, a Linux PC or a headless Debian VM on a Mac, plus calibration, monitoring and power-loss resume."
     }
   ]
 }

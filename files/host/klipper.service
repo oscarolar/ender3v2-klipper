@@ -1,5 +1,6 @@
 # Klipper host (klippy) for the Ender 3 V2. Repo-owned: Klipper's install-debian.sh
 # is still the Python 2 installer and the Ubuntu one uses ~/printer.cfg.
+# install-stack.sh fills @USER@ and @HOME@ with the user that runs it.
 [Unit]
 Description=Klipper 3D printer host (klippy)
 After=network-online.target
@@ -7,10 +8,10 @@ Wants=network-online.target
 
 [Service]
 Type=simple
-User=klipper
+User=@USER@
 RemainAfterExit=yes
-WorkingDirectory=/home/klipper/klipper
-ExecStart=/home/klipper/klippy-env/bin/python /home/klipper/klipper/klippy/klippy.py /home/klipper/printer_data/config/printer.cfg -I /home/klipper/printer_data/comms/klippy.serial -l /home/klipper/printer_data/logs/klippy.log -a /home/klipper/printer_data/comms/klippy.sock
+WorkingDirectory=@HOME@/klipper
+ExecStart=@HOME@/klippy-env/bin/python @HOME@/klipper/klippy/klippy.py @HOME@/printer_data/config/printer.cfg -I @HOME@/printer_data/comms/klippy.serial -l @HOME@/printer_data/logs/klippy.log -a @HOME@/printer_data/comms/klippy.sock
 Restart=always
 RestartSec=10
 

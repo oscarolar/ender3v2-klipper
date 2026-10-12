@@ -17,9 +17,12 @@ settings work for both.
   prior to movement`: the pin stuck once. `BLTOUCH_DEBUG COMMAND=reset`,
   `QUERY_PROBE` must say `open`, relaunch the print. If it keeps happening,
   clean the pin with isopropyl alcohol.
-- Probing moves are also where bridge stalls show up (`Timer too close`,
-  `Communication timeout during homing`): see "Timing hardening" in
-  `host-vm-and-bridge.md`. A failure at print start costs nothing: relaunch.
+- Probing moves are also where host or link stalls show up (`Timer too close`,
+  `Communication timeout during homing`): "Stall hunting" in
+  `troubleshooting.md` (on a Mac first "Timing hardening" in
+  `host-mac-vm-bridge.md`). A failure at print start costs nothing: relaunch.
+- A power cycle must really cut the probe's power: on a Pi, USB back-power can
+  keep the board alive (`host-setup.md`).
 
 ## [bltouch] settings
 

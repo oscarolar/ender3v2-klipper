@@ -5,7 +5,9 @@ UTM cannot pass USB devices to a headless VM (docs/adr/0001), so macOS keeps the
 CH340 and this bridge forwards bytes between it and one TCP client: socat in the
 VM, which turns the stream back into /dev/printer for Klippy. The serial port is
 opened when the client connects and closed when it leaves. The bridge refuses to
-open it while another process (OctoPrint, a slicer) holds it.
+open it while another process (OctoPrint, a slicer) holds it. Serial silences
+and blocked writes/sends are logged as "STALL" lines; files/tools/jitter-probe.py
+explains how to read them against host and VM freezes.
 
   klipper-serial-bridge.py --port auto --baud 250000 \
       --listen 192.168.64.1:7523 --allow 192.168.64.250
@@ -21,10 +23,27 @@ import os
 import socket
 import subprocess
 import threading
+import time
 
 import serial
 
 log = logging.getLogger("klipper-serial-bridge")
+
+# Stall logging, to find which hop freezes before a Klipper "Timer too close".
+# The MCU reports temperatures every 300 ms, so a longer silence on the serial
+# side, or a write/send that blocks, is logged with its duration.
+READ_GAP_MS = 400
+IDLE_GAP_MS = 3000  # longer silences are an idle or shut-down MCU, not a stall
+BLOCK_MS = 50
+
+
+def _timed(label, fn, *args):
+    t0 = time.monotonic()
+    result = fn(*args)
+    ms = (time.monotonic() - t0) * 1000
+    if ms > BLOCK_MS:
+        log.warning("STALL %s blocked %.0f ms", label, ms)
+    return result
 
 
 def resolve_port(port):
@@ -46,11 +65,16 @@ def port_in_use(path):
 
 
 def _serial_to_socket(ser, conn, stop):
+    last_rx = None
     try:
         while not stop.is_set():
             data = ser.read(ser.in_waiting or 1)
             if data:
-                conn.sendall(data)
+                now = time.monotonic()
+                if last_rx is not None and READ_GAP_MS < (now - last_rx) * 1000 < IDLE_GAP_MS:
+                    log.warning("STALL serial silent %.0f ms", (now - last_rx) * 1000)
+                last_rx = now
+                _timed("socket send", conn.sendall, data)
     except (OSError, serial.SerialException) as exc:
         log.warning("serial->socket stopped: %s", exc)
     finally:
@@ -78,7 +102,7 @@ def _handle(conn, port, baud):
             data = conn.recv(4096)
             if not data:
                 break
-            ser.write(data)
+            _timed("serial write", ser.write, data)
     except (OSError, serial.SerialException) as exc:
         log.warning("socket->serial stopped: %s", exc)
     finally:

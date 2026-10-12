@@ -1,20 +1,26 @@
-# Ender 3 V2: Klipper on a Mac
+# Ender 3 V2: Marlin to Klipper on any host
 
-Run [Klipper](https://www.klipper3d.org/) on a Creality Ender 3 V2 **without a
-Raspberry Pi**: the Klipper host (Klipper, Moonraker, Mainsail) lives in a
-headless Debian 12 arm64 VM under [UTM](https://mac.getutm.app/) on an
-always-on Apple Silicon Mac. macOS keeps the printer's USB serial and a small
-bridge forwards it to the VM over TCP.
+Move a Creality Ender 3 V2 to [Klipper](https://www.klipper3d.org/) on
+whatever machine is always on:
+
+- a **Raspberry Pi** (Raspberry Pi OS Lite 64-bit) or any **Linux PC/server**
+  (Debian 12+, Ubuntu 22.04+) with the printer's USB plugged in, or
+- an **Apple Silicon Mac** with no Linux machine around: the Klipper host
+  (Klipper, Moonraker, Mainsail) runs in a headless Debian VM under
+  [UTM](https://mac.getutm.app/) and a small bridge forwards the USB serial
+  to it over TCP.
 
 This repository is a [Claude Code](https://claude.com/claude-code) plugin: a
 skill that walks an agent (and you) through the whole migration from Marlin,
-a full calibration and a go/no-go test, plus the scripts and configs it uses.
-Everything can also be followed by hand.
+a full calibration, a go/no-go test and life afterwards (watching long
+prints, resuming after a stop), plus the scripts and configs it uses.
+Everything can also be followed by hand. It was called
+`ender3v2-klipper-on-mac` until v0.2.0.
 
 ## Results on one printer
 
 Stock Ender 3 V2 (board 4.2.2, bowden extruder, CR Touch clone, carborundum
-glass bed), mainline Klipper over the bridge:
+glass bed), mainline Klipper on a Mac mini VM over the bridge:
 
 | | Before (Marlin) | After (Klipper) |
 |---|---|---|
@@ -30,55 +36,62 @@ Klipper made that measurable.
 ## How it works
 
 ```
- Mac (owns the USB)                               Debian VM (UTM, headless)
- CH340 -> klipper-serial-bridge.py (LaunchAgent)  socat -> /dev/printer -> Klipper
-          TCP 192.168.64.1:7523  --host-only-->   Moonraker + Mainsail on the LAN
+ Raspberry Pi / Linux PC                 Mac
+ CH340 --udev--> /dev/printer            CH340 -> klipper-serial-bridge.py (LaunchAgent)
+                  |                               TCP 192.168.64.1:7523 --host-only-->
+                  v                      Debian VM (UTM): socat -> /dev/printer
+         Klipper + Moonraker + Mainsail           -> Klipper + Moonraker + Mainsail
 ```
 
-Why not a Pi, Docker or UTM USB passthrough: see
-[docs/adr/0001](docs/adr/0001-klipper-host-in-vm-with-tcp-serial-bridge.md).
+The same `printer.cfg` works on every host: Klipper reads `/dev/printer`, which
+exists only after the cutover (`printer-link.sh enable`), so Klipper never
+grabs the printer while it still runs Marlin. Why a VM and a bridge on the
+Mac rather than Docker or USB passthrough:
+[docs/adr/0001](docs/adr/0001-klipper-host-in-vm-with-tcp-serial-bridge.md);
+why one setup for every host: [docs/adr/0002](docs/adr/0002-any-host-dev-printer-link.md).
 
 ## Install as a Claude Code plugin
 
 ```bash
-claude plugin marketplace add oscarolar/ender3v2-klipper-on-mac
-claude plugin install ender3v2-klipper-on-mac@ender3v2-klipper-on-mac
+claude plugin marketplace add oscarolar/ender3v2-klipper
+claude plugin install ender3v2-klipper@ender3v2-klipper
 ```
 
-Then ask Claude something like "move my Ender 3 V2 to Klipper on this Mac".
-The skill keeps your printer on Marlin until the VM is proven, asks you for
-physical feedback only (paper feel, knob turns, tower heights), and reads
-every result as numbers from Moonraker.
+Already had `ender3v2-klipper-on-mac` installed? Remove it first:
+`claude plugin uninstall ender3v2-klipper-on-mac@ender3v2-klipper-on-mac` and
+`claude plugin marketplace remove ender3v2-klipper-on-mac`.
+
+Then ask Claude something like "move my Ender 3 V2 to Klipper on my
+Raspberry Pi" (or "on this Mac"). The skill keeps your printer on Marlin until
+the host is proven, asks you for physical feedback only (paper feel, knob
+turns, tower heights), and reads every result as numbers from Moonraker.
 
 ## Follow it by hand
 
-Start at [SKILL.md](skills/ender3v2-klipper-on-mac/SKILL.md), then the
-references in order:
+Start at [SKILL.md](skills/ender3v2-klipper/SKILL.md), then the references in
+order:
 
-1. [host-vm-and-bridge.md](skills/ender3v2-klipper-on-mac/references/host-vm-and-bridge.md)
-2. [firmware-and-cutover.md](skills/ender3v2-klipper-on-mac/references/firmware-and-cutover.md) and [printer-config.md](skills/ender3v2-klipper-on-mac/references/printer-config.md)
-3. [calibration.md](skills/ender3v2-klipper-on-mac/references/calibration.md), [print-start-and-probe.md](skills/ender3v2-klipper-on-mac/references/print-start-and-probe.md), [slicer-orca.md](skills/ender3v2-klipper-on-mac/references/slicer-orca.md)
-4. [go-no-go-and-rollback.md](skills/ender3v2-klipper-on-mac/references/go-no-go-and-rollback.md)
+1. [host-setup.md](skills/ender3v2-klipper/references/host-setup.md) (on a Mac first [host-mac-vm-bridge.md](skills/ender3v2-klipper/references/host-mac-vm-bridge.md))
+2. [firmware-and-cutover.md](skills/ender3v2-klipper/references/firmware-and-cutover.md) and [printer-config.md](skills/ender3v2-klipper/references/printer-config.md)
+3. [calibration.md](skills/ender3v2-klipper/references/calibration.md), [print-start-and-probe.md](skills/ender3v2-klipper/references/print-start-and-probe.md), [slicer-orca.md](skills/ender3v2-klipper/references/slicer-orca.md)
+4. [go-no-go-and-rollback.md](skills/ender3v2-klipper/references/go-no-go-and-rollback.md)
+5. [power-loss-and-monitoring.md](skills/ender3v2-klipper/references/power-loss-and-monitoring.md), [upgrades.md](skills/ender3v2-klipper/references/upgrades.md)
 
-[troubleshooting.md](skills/ender3v2-klipper-on-mac/references/troubleshooting.md) when stuck.
+[troubleshooting.md](skills/ender3v2-klipper/references/troubleshooting.md) when stuck.
 
 ## What is in `files/`
 
 | Path | What |
 |---|---|
-| `mac/create-vm.sh` | creates the UTM VM from Debian's genericcloud image with cloud-init |
-| `mac/klipper-serial-bridge.py` | USB serial ↔ TCP bridge (pyserial) |
-| `mac/install-agents.sh`, `mac/launchd/*.plist.tmpl` | bridge and VM keep-alive LaunchAgents, App Nap off for UTM |
-| `mac/deploy-config.sh` | copies the installer and Klipper config into the VM |
-| `vm/` | cloud-init seed, systemd units, nginx site, `install-stack.sh` (includes the `TRSYNC_TIMEOUT` patch) |
+| `host/` | runs on the Klipper host: `install-stack.sh` (`SERIAL_MODE=usb` or `bridge`), `printer-link.sh` (cutover/rollback), systemd units, udev rule, nginx site |
+| `mac/` | Mac only: `create-vm.sh` + `vm-seed/` (cloud-init), the USB ↔ TCP `klipper-serial-bridge.py`, LaunchAgents (`install-agents.sh`) |
 | `firmware/ender3v2-422.config` | Klipper firmware build config for the 4.2.2 board |
 | `klipper/` | `printer.cfg`, `macros.cfg` (`PRINT_START`, `PRINT_END`, power-loss resume), `moonraker.conf` |
-| `orca/` | OrcaSlicer printer + fast process profile generator |
-| `tools/` | Moonraker API helper and a print monitor |
+| `orca/` | OrcaSlicer printer + fast process profile generator (macOS, Linux, Windows) |
+| `tools/` | `deploy-config.sh`, Moonraker helper, print monitor, auto-resume, resume-point mirror, jitter probe |
 
-Hosts, IPs, labels and paths are settings with defaults (UTM's
-`192.168.64.0/24` host-only network, `com.example` launchd labels); each
-script documents its variables in its header.
+Hosts, IPs, labels and paths are settings with defaults; each script
+documents its variables in its header.
 
 ## Tests
 
@@ -86,30 +99,31 @@ script documents its variables in its header.
 uvx --with pyserial pytest -q tests
 ```
 
-Covers the serial bridge (with pyserial's `loop://`) and the Orca profile
-generator. Klipper batch-mode tests of the macros (`scripts/test_klippy.py`)
-are not included: they need a Klipper checkout and a built firmware
-dictionary, i.e. the VM.
+Covers the serial bridge (with pyserial's `loop://`), the Orca profile
+generator, the auto-resume decisions, the resume-point mirror and the print
+monitor against a fake Moonraker. Klipper batch-mode tests of the macros are
+not included: they need a Klipper checkout and a built firmware dictionary.
 
 ## Limitations
 
-- Tested on one printer: Ender 3 V2, board 4.2.2, stock bowden, a CR Touch
-  clone, a Mac mini M1 with UTM 4.7 and Debian 12. Other boards (4.2.7), probes
-  or extruders need their own pins and numbers.
-- The Mac is now part of the printer. A Mac reboot stops the print
-  (heaters off); turn macOS automatic updates off. Power-loss resume
-  (`PLR_RESUME`) is best effort.
-- Homing and probing are sensitive to stalls on the VM → bridge path. It
-  needs App Nap off, an interactive-priority bridge and a one-line Klipper
-  patch (`TRSYNC_TIMEOUT` 25 → 50 ms) that every Klipper update reverts until
-  `install-stack.sh` is re-run. The root cause of the rare stalls was not
-  proven.
+- Proven on one printer, over the Mac path: Ender 3 V2, board 4.2.2, stock
+  bowden, a CR Touch clone, a Mac mini M1 with UTM 4.7 and Debian 12. The Pi
+  and Linux paths are Klipper's standard direct-USB setup driven by the same
+  scripts, but have not had their own go/no-go print here yet. Other boards
+  (4.2.7), probes or extruders need their own pins and numbers.
+- The host is now part of the printer: a reboot, suspend or crash stops the
+  print (heaters off). Power-loss resume (`PLR_RESUME`) is best effort.
+- On a Mac, homing and probing need App Nap off, an interactive-priority
+  bridge and a one-line Klipper patch (`TRSYNC_TIMEOUT` 25 → 50 ms) that every
+  Klipper update reverts until `install-stack.sh` is re-run; and the Mac must
+  not run iCloud Contacts/Photos sync or iPhone calls, which froze the VM
+  every hour.
 - The stock DWIN display goes dark; you control the printer from Mainsail.
 - No accelerometer: input shaping is chosen from a printed ringing tower.
 - A CR Touch clone can still latch at print start; the only fix is a printer
   power cycle. The start macro reduces how often it happens, it does not
   remove it.
-- Nothing here is endorsed by Creality, Klipper, UTM or OrcaSlicer.
+- Nothing here is endorsed by Creality, Klipper, UTM, Raspberry Pi or OrcaSlicer.
 
 ## License
 

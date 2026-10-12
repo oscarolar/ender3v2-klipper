@@ -7,7 +7,7 @@ Moonraker host, klipper G-code flavor, firmware retraction, PRINT_START /
 PRINT_END / PLR_SAVE hooks, and machine limits that match printer.cfg.
 Optionally a fast process profile is written too.
 
-  orca-klipper-profile.py <vm-lan-ip> --source "Ender-3 V2 CR Touch" \\
+  orca-klipper-profile.py <klipper-host> --source "Ender-3 V2 CR Touch" \\
       [--name "Ender-3 V2 Klipper CR Touch"] [--process "0.20mm Klipper fast"]
 
 Run with OrcaSlicer CLOSED: Orca rewrites its profiles on exit.
@@ -16,6 +16,7 @@ import argparse
 import datetime
 import glob
 import json
+import os
 import pathlib
 import sys
 
@@ -33,7 +34,20 @@ MACHINE_LIMITS = {
     "machine_max_speed_x": ["200", "200"],
     "machine_max_speed_y": ["200", "200"],
 }
-ORCA_USER = pathlib.Path.home() / "Library/Application Support/OrcaSlicer/user"
+
+
+def default_orca_user():
+    """Orca's user profile dir on the machine running Orca."""
+    home = pathlib.Path.home()
+    if sys.platform == "darwin":
+        return home / "Library/Application Support/OrcaSlicer/user"
+    if sys.platform == "win32":
+        return pathlib.Path(os.environ.get("APPDATA", home / "AppData/Roaming")) / "OrcaSlicer/user"
+    flatpak = home / ".var/app/io.github.softfever.OrcaSlicer/config/OrcaSlicer/user"
+    return flatpak if flatpak.exists() else home / ".config/OrcaSlicer/user"
+
+
+ORCA_USER = default_orca_user()
 
 
 def build(src, host, name=DEFAULT_NAME):
@@ -103,13 +117,13 @@ def find_machine_dir(orca_user):
 
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    ap.add_argument("host", help="the Klipper VM's LAN IP or hostname (Moonraker)")
+    ap.add_argument("host", help="the Klipper host's LAN IP or hostname (Moonraker)")
     ap.add_argument("--source", required=True,
                     help="name of your existing Orca user printer profile to copy")
     ap.add_argument("--name", default=DEFAULT_NAME, help="name of the new printer profile")
     ap.add_argument("--process", help="also write a fast process profile with this name")
     ap.add_argument("--orca-user", type=pathlib.Path, default=ORCA_USER,
-                    help="Orca's user profile dir (default: macOS location)")
+                    help="Orca's user profile dir (default: per OS, %(default)s)")
     args = ap.parse_args(argv)
 
     mdir = find_machine_dir(args.orca_user)

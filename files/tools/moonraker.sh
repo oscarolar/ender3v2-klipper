@@ -7,12 +7,13 @@
 #   moonraker.sh mesh               probed mesh, back row on top, and its range
 #   moonraker.sh stats              MCU link stats (srtt, retransmits, invalid bytes)
 #
-# Host: $KLIPPER_HOST (the VM's LAN IP or name). Mainsail's nginx cuts a request
-# after 60 s while Klipper keeps running the command (PID_CALIBRATE, meshes,
-# SCREWS_TILT_CALCULATE), so "gcode" waits 55 s, then re-posts M400 until the
-# command has finished and prints the console lines produced meanwhile.
+# Host: $KLIPPER_HOST (the Klipper host's LAN IP or name). Mainsail's nginx
+# cuts a request after 60 s while Klipper keeps running the command
+# (PID_CALIBRATE, meshes, SCREWS_TILT_CALCULATE), so "gcode" waits 55 s, then
+# re-posts M400 until the command has finished and prints the console lines
+# produced meanwhile.
 set -uo pipefail
-: "${KLIPPER_HOST:?set KLIPPER_HOST to the Klipper VM LAN IP or name}"
+: "${KLIPPER_HOST:?set KLIPPER_HOST to the LAN IP or name of the Klipper host}"
 K="http://$KLIPPER_HOST"
 
 store() {

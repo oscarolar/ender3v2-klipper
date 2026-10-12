@@ -99,3 +99,28 @@ def test_port_in_use_detects_other_process():
             holder.kill()
             holder.wait()
             holder.stdout.close()
+
+
+def test_timed_logs_only_slow_calls(caplog):
+    caplog.set_level("WARNING", logger="klipper-serial-bridge")
+    assert bridge._timed("fast", lambda x: x + 1, 1) == 2
+    bridge._timed("slow", time.sleep, (bridge.BLOCK_MS + 30) / 1000)
+    stalls = [r.getMessage() for r in caplog.records if "STALL" in r.getMessage()]
+    assert len(stalls) == 1 and stalls[0].startswith("STALL slow blocked")
+
+
+def test_serial_silence_logged_between_read_and_idle_gaps(caplog, monkeypatch):
+    # Shrink the thresholds so the test runs fast: a 250 ms gap is a stall,
+    # a 700 ms gap counts as an idle MCU and is not logged.
+    monkeypatch.setattr(bridge, "READ_GAP_MS", 150)
+    monkeypatch.setattr(bridge, "IDLE_GAP_MS", 500)
+    caplog.set_level("WARNING", logger="klipper-serial-bridge")
+    addr = start({"127.0.0.1"})
+    with socket.create_connection(addr, timeout=2) as s:
+        for gap in (0, 0.25, 0.7):
+            time.sleep(gap)
+            s.sendall(b"x")
+            assert s.recv(1) == b"x"
+    time.sleep(0.1)
+    silent = [r.getMessage() for r in caplog.records if r.getMessage().startswith("STALL serial silent")]
+    assert len(silent) == 1
