@@ -1,7 +1,10 @@
 # Calibration, in order
 
 Every step moves or heats: the human is at the printer and the bed is clear
-(SKILL.md protocol). Send commands and read results with
+(SKILL.md protocol). Test models: PA and ringing towers come with Klipper
+(`~/klipper/docs/prints/` on the host); the retraction towers and the
+adhesion discs are in `files/calibration/` (regenerate other sizes with
+`files/calibration/make-test-models.py`). Send commands and read results with
 `files/tools/moonraker.sh` (`KLIPPER_HOST=<klipper-host>`): `gcode`, `store`,
 `query`, `mesh`. Example numbers are from one stock bowden Ender 3 V2 with a
 CR Touch clone; yours will differ.
@@ -82,7 +85,8 @@ near 0.40, kept 0.32. Set `pressure_advance` in `[extruder]`.
 
 ## 8. Ringing (no accelerometer)
 
-Slice `ringing_tower.stl`: 0.2 mm layers, 1 wall, outer wall ~80 mm/s.
+Slice Klipper's `docs/prints/ringing_tower.stl` (from `~/klipper` on the host):
+0.2 mm layers, 1 wall, outer wall ~80 mm/s.
 Before printing:
 ```
 SET_VELOCITY_LIMIT MINIMUM_CRUISE_RATIO=0 SQUARE_CORNER_VELOCITY=1
@@ -98,7 +102,10 @@ with `shaper_type: mzv` and both frequencies.
 
 ## 9. Retraction
 
-Two 10 × 10 mm towers 60 mm apart, 40 mm tall. Before printing:
+`files/calibration/retraction_towers.stl`: two 10 × 10 mm towers, 40 mm tall,
+50 mm of travel between them. Slice: 0.2 mm layers, 2 walls, 0 % infill, no top,
+3 bottom layers, walls 60 mm/s, travel 150 mm/s, "avoid crossing walls" off
+(the travel must cross open air). Before printing:
 ```
 TUNING_TOWER COMMAND=SET_RETRACTION PARAMETER=RETRACT_LENGTH START=1.0 STEP_DELTA=0.5 STEP_HEIGHT=5
 ```
@@ -108,8 +115,11 @@ had 2.5). PLA at 210 °C.
 
 ## 10. First layer and adhesion
 
-Five 25 mm discs, 2 layers, in a dice-five pattern (four corners and the
-centre). Human checks each disc: same squish everywhere, no gaps, no ridges.
+`files/calibration/adhesion_dice5.stl`: five 25 mm discs, 0.4 mm (2 layers),
+in a dice-five pattern (four corners and the centre) placed for a 220 mm bed.
+Slice with your normal process and filament (it tests the real first layer),
+without auto-arrange (the discs must stay at the corners), no brim, no
+skirt. Human checks each disc: same squish everywhere, no gaps, no ridges.
 If one corner differs, go back to step 4. Example: PLA sticks to the stock
 carborundum glass without glue.
 

@@ -88,6 +88,7 @@ order:
 | `firmware/ender3v2-422.config` | Klipper firmware build config for the 4.2.2 board |
 | `klipper/` | `printer.cfg`, `macros.cfg` (`PRINT_START`, `PRINT_END`, power-loss resume), `moonraker.conf` |
 | `orca/` | OrcaSlicer printer + fast process profile generator (macOS, Linux, Windows) |
+| `calibration/` | retraction towers and 5-disc adhesion STLs, and the generator for other sizes (PA and ringing towers come with Klipper) |
 | `tools/` | `deploy-config.sh`, Moonraker helper, print monitor, auto-resume, resume-point mirror, jitter probe |
 
 Hosts, IPs, labels and paths are settings with defaults; each script
@@ -100,7 +101,7 @@ uvx --with pyserial pytest -q tests
 ```
 
 Covers the serial bridge (with pyserial's `loop://`), the Orca profile
-generator, the auto-resume decisions, the resume-point mirror and the print
+generator, the calibration models, the auto-resume decisions, the resume-point mirror and the print
 monitor against a fake Moonraker. Klipper batch-mode tests of the macros are
 not included: they need a Klipper checkout and a built firmware dictionary.
 

@@ -1,6 +1,6 @@
 {
   "name": "ender3v2-klipper",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Migrate a Creality Ender 3 V2 (board 4.2.2, CR Touch) from Marlin to mainline Klipper on a Raspberry Pi, a Linux PC or an Apple Silicon Mac (headless Debian VM with the USB serial bridged over TCP), with a full calibration, a go/no-go gate, print monitoring and power-loss resume.",
   "author": {
     "name": "Oscar Alcalá",
